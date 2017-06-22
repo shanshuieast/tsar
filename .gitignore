@@ -6,3 +6,4 @@ src/tsar
 *.dSYM
 cscope.out
 ttsar.sh
+mytest/

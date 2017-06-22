@@ -1,3 +1,146 @@
+Tsar自定义模块开发
+------------
+
+基于[Taobao System Activity Reporter](https://github.com/alibaba/tsar)，在其上进行扩展模块的开发，以满足项目所需。
+
+生成自定义模块开发目录
+------------
+
+在tsar源代码目录下，运行命令`tsardevel <yourmodname>`
+
+    $ tsardevel mytest
+    build: make
+    install: make install
+    uninstall: make uninstall
+	test:tsar --list or tsar --mytest --live -i 1
+    
+    $ ls mytest
+    Makefile mod_mytest.c mod_mytest.conf
+
+
+模块介绍信息
+------------
+
+    static const char *mytest_usage = "    --mytest               mytest information";
+
+模块信息采集数据结构
+------------
+
+    /*
+     * temp structure for collection infomation.
+     */
+    struct stats_mytest {
+        unsigned long long    value_1;
+        unsigned long long    value_2;
+        unsigned long long    value_3;
+    };
+
+采集数据只支持整形类型。
+
+框架处理模块的方式
+------------
+
+    /* Structure for tsar */
+    static struct mod_info mytest_info[] = {
+        {"value1", SUMMARY_BIT,  0,  STATS_NULL},
+        {"value2", DETAIL_BIT,  0,  STATS_NULL},
+        {"value3", DETAIL_BIT,  0,  STATS_NULL}
+    };
+
+1. 第一列：信息名称，与`数据库字段`对应，最大6个字符，前面空格填充；
+2. 第二列：显示方式
+    - SUMMARY_BIT：概要输出时显示该列
+    - DETAIL_BIT：具体制定模块时显示该列
+    - HIDE_BIT：暂不显示
+3. 第三列：数据合并方式
+    - MERGE_NULL：没有多item，不需要汇总
+    - MERGE_SUM：将多个item数据做加和处理
+    - MERGE_AVG：将多个item数据做平均处理
+4. 第四列：数据展示时的计算关系
+    - STATS_NULL：只显示本周期数据
+    - STATS_SUB：将本周期数据和上周期数据做差的结果输出
+    - STATS_SUB_INTER：将前后两周期的数据差并除时间间隔作为输出
+
+采集函数 read_mytest_stats
+------------
+
+申请一个刚才声明的struct，通过读文件，或者其它采集方式，取得数值，存到struct结构中。
+
+保存函数 set_mytest_record
+------------
+
+将数据传到Tsar的框架中，如果这个模块每次只有一条记录，则只需要将数据间用逗号隔开即可，如果一次采集可能有多个记录（称为多item情况），则需要将item之间用分号隔开。
+
+模块注册 mod_register
+------------
+
+    register_mod_fields(mod, "--mytest", mytest_usage, mytest_info, 3, read_mytest_stats, set_mytest_record);
+
+- 参数1：模块实例句柄
+- 参数2：模块快捷方式
+- 参数3：模块介绍
+- 参数4：模块注册信息
+- 参数5：列数目
+- 参数6：采集函数
+- 参数7：结果计算函数。
+
+
+默认模板配置文件 mod_mytest.conf
+------------
+
+- **`mod_mytest on`**：打开模块功能
+- **`output_db_mod mod_mytest`**：保存采集信息至数据库
+
+数据库预制脚本
+------------
+
+同时创建mytest_1、mytest_2和mytest三个相同结构的数据库表，示例如下：
+
+	-- mytest_1 info
+	CREATE TABLE IF NOT EXISTS `mytest_1` (
+		`host_name` VARCHAR(64) NOT NULL DEFAULT '',
+		`time` INT(11) NOT NULL DEFAULT '0',
+		`value1` DECIMAL(8 , 2 ) DEFAULT NULL,
+		`value2` DECIMAL(8 , 2 ) DEFAULT NULL,
+		`value3` DECIMAL(8 , 2 ) DEFAULT NULL,
+		`view_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		PRIMARY KEY (`view_time` , `host_name`)
+	)  ENGINE=MYISAM DEFAULT CHARSET=LATIN1 COMMENT='mytest mod info';
+
+	-- mytest_2 info
+	CREATE TABLE IF NOT EXISTS `mytest_2` (
+		`host_name` VARCHAR(64) NOT NULL DEFAULT '',
+		`time` INT(11) NOT NULL DEFAULT '0',
+		`value1` DECIMAL(8 , 2 ) DEFAULT NULL,
+		`value2` DECIMAL(8 , 2 ) DEFAULT NULL,
+		`value3` DECIMAL(8 , 2 ) DEFAULT NULL,
+		`view_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		PRIMARY KEY (`view_time` , `host_name`)
+	)  ENGINE=MYISAM DEFAULT CHARSET=LATIN1 COMMENT='mytest mod info';
+
+	-- mytest info
+	CREATE TABLE IF NOT EXISTS `mytest` (
+		`host_name` VARCHAR(64) NOT NULL DEFAULT '',
+		`time` INT(11) NOT NULL DEFAULT '0',
+		`value1` DECIMAL(8 , 2 ) DEFAULT NULL,
+		`value2` DECIMAL(8 , 2 ) DEFAULT NULL,
+		`value3` DECIMAL(8 , 2 ) DEFAULT NULL,
+		`view_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		PRIMARY KEY (`view_time` , `host_name`)
+	)  ENGINE=MRG_MYISAM DEFAULT CHARSET=LATIN1 INSERT_METHOD=LAST UNION=( `mytest_1` , `mytest_2` );
+
+
+其它
+------------
+
+如有问题，请联系 shanshuieast@gmail.com 。
+
+------------
+
+以下为Tsar原始README.md信息：
+
+------------
+
 Introduction
 ------------
 Tsar (Taobao System Activity Reporter) is a monitoring tool, which can be used to gather and summarize system information, e.g. CPU, load, IO, and application information, e.g. nginx, HAProxy, Squid, etc. The results can be stored at local disk or sent to Nagios.
