@@ -84,7 +84,11 @@ set_swap_record(struct module *mod, double st_array[],
 
     /* calc total swap and use util */
     st_array[2] = cur_array[2];
-    st_array[3] = 100.0 - cur_array[3] * 100.0 / cur_array[2];
+	/* Fixed a calculation error（used swap space ratio） when swap space was zero. */
+	if (cur_array[2] != 0)
+		st_array[3] = 100.0 - cur_array[3] * 100.0 / cur_array[2];
+	else
+		st_array[3] = 0;
 }
 
 static struct mod_info swap_info[] = {
