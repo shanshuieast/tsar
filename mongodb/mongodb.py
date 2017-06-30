@@ -134,7 +134,7 @@ def get_ms_rate(name):
     except StandardError:
         rate = float(0)
 
-	# Adjust the unit scale from every second to every millisecond
+    # Adjust the unit scale from every second to every millisecond
     return rate * 1000
 
 
@@ -163,7 +163,7 @@ def get_opcounter_rate(name):
     master_rate = get_rate(name)
     repl_rate = get_rate(name.replace('opcounters_', 'opcountersRepl_'))
 
-	# Adjust the unit scale from every second to every millisecond
+    # Adjust the unit scale from every second to every millisecond
     return 1000 * master_rate + repl_rate
 
 
@@ -176,7 +176,7 @@ def get_globalLock_ratio(name):
     except ZeroDivisionError:
         result = 0
 
-	# Adjust the unit scale from one percent to one thousandth
+    # Adjust the unit scale from one percent to one thousandth
     return 1000 * result
 
 
@@ -189,7 +189,7 @@ def get_indexCounters_btree_miss_ratio(name):
     except ZeroDivisionError:
         result = 0
 
-	# Adjust the unit scale from one percent to one thousandth
+    # Adjust the unit scale from one percent to one thousandth
     return 1000 * result
 
 
@@ -202,7 +202,7 @@ def get_connections_current_ratio(name):
     except ZeroDivisionError:
         result = 0
 
-	# Adjust the unit scale from one percent to one thousandth
+    # Adjust the unit scale from one percent to one thousandth
     return 1000 * result
 
 
@@ -236,7 +236,7 @@ def get_slave_delay(name):
 def get_asserts_total_rate(name):
     """Return the total number of asserts per millisecond"""
 
-	# Adjust the unit scale from every second to every millisecond
+    # Adjust the unit scale from every second to every millisecond
     return 1000* float(reduce(lambda memo,obj: memo + get_rate('%sasserts_%s' % (NAME_PREFIX, obj)),
                        ['regular', 'warning', 'msg', 'user', 'rollovers'], 0))
 
@@ -253,9 +253,9 @@ def metric_init(lparams):
     # define descriptors
     time_max = 60
     groups = 'mongodb'
-	# 1. Change the data type from float to uint
-	# 2. Adjust the unit scale from every second to every millisecond
-	# 3. Adjust the unit scale from one percent to one thousandth
+    # 1. Change the data type from float to uint
+    # 2. Adjust the unit scale from every second to every millisecond
+    # 3. Adjust the unit scale from one percent to one thousandth
     descriptors = [
         {
             'name': NAME_PREFIX + 'opcounters_insert',
