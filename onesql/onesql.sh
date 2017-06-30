@@ -1,5 +1,35 @@
 #!/bin/sh
 
+#
+# OneSQL monitor module used for 'tsar'
+#
+# Collect the following 9 performance indicators:
+#
+#   00. Queries per Second:        Questions/Uptime
+#
+#   01. Transactions per Second:  (Com_commit+Com_rollback)/Uptime
+#
+#   02. Read Ratio(%):
+#       (Com_select+Qcache_hits)/(Com_select+Qcache_hits+Com_insert+Com_update+Com_delete+Com_replace)*100
+#
+#   03. Innodb buffer read hits(%):
+#       (1-innodb_buffer_pool_reads/innodb_buffer_pool_read_requests)*100
+#
+#   04. MyISAM index read hits(%):
+#       (1-key_reads/key_read_requests)*100
+#
+#   05. MYISAM index write hits(%):
+#       (1-key_writes/key_write_requests)*100
+#
+#   06. Query cache hits(%):
+#       qcache_hits/(qcache_hits+qcache_inserts)*100
+#
+#   07. Thread cache hits(%):
+#       (1-threads_created/connections)*100
+#
+#   08. Innodb row lock waits: innodb_row_lock_waits
+#
+
 getval() {
 	/usr/local/onesql5632/bin/mysql -u root -proot123 \
 		-e "show status like 'oneagent_$1%'\G" \
@@ -12,7 +42,7 @@ getval() {
 getval_ex() {
 	/usr/local/onesql5632/bin/mysql -u root -proot123 \
 		-e "show status where Variable_name='$1'\G" \
-		2>>/tmp/errorlog | \
+		2>>/dev/null | \
 		grep Value | \
 		awk -F: 'BEGIN{ORS=","}{print $2}' | \
 		sed -s "s/,$//g"
