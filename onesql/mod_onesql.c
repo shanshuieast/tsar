@@ -124,7 +124,8 @@ get_onesql_status(char *result)
 	}
 
 	// Remove 'Enter'
-	result[strlen(result)-1] = '\0';
+    if (strlen(result) > 0)
+        result[strlen(result)-1] = '\0';
 
 	return ret;
 }
